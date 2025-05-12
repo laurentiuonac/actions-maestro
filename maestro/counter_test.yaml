@@ -1,0 +1,9 @@
+# Maestro UI test: Tap the floating action button 3 times and verify the count label is '3'
+---
+appId: "com.example.actions_maestro"
+---
+- launchApp
+- tapOn: "Increment"
+- tapOn: "Increment"
+- tapOn: "Increment"
+- assertVisible: "3"

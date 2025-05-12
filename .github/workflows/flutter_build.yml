@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-arm64
 
     steps:
       - name: Checkout repository
@@ -30,3 +30,62 @@ jobs:
         with:
           name: app-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+
+  maestro-test:
+    needs: build
+    runs-on: ubuntu-latest-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: ./apk
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create Android emulator
+        run: |
+          echo "y" | avdmanager create avd -n test -k 'system-images;android-33;google_apis;arm64-v8a' -d pixel
+
+      - name: Start emulator
+        run: |
+          nohup emulator -avd test -no-window -no-audio -no-boot-anim &
+          adb wait-for-device
+
+      - name: Wait for Android to boot
+        run: |
+          # Wait until the system property 'sys.boot_completed' returns 1
+          bootanim=
+          until [ "$bootanim" == "1" ]; do
+            bootanim=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            sleep 2
+          done
+          echo "Android booted."
+
+      - name: Install APK on emulator
+        run: |
+          adb install ./apk/app-debug.apk
+
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+
+      - name: Run Maestro test
+        run: |
+          maestro test maestro/counter_test.yaml
+
+      - name: Shutdown emulator
+        if: always()
+        run: |
+          adb -s $(adb devices | grep emulator | cut -f1) emu kill || true
