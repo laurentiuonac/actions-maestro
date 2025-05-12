@@ -62,7 +62,7 @@ jobs:
         run: export PATH="$PATH:$HOME/.maestro/bin"
 
       - name: Check Maestro install
-        run: maestro --version
+        run: ~/.maestro/bin/maestro --version
 
       - name: Enable KVM
         run: |
@@ -79,4 +79,4 @@ jobs:
           profile: pixel
           force-avd-creation: true
           emulator-options: -no-window -no-audio -no-boot-anim
-          script: adb install ./apk/app-debug.apk; maestro test maestro/counter_test.yaml
+          script: adb install ./apk/app-debug.apk; ~/.maestro/bin/maestro test maestro/counter_test.yaml
