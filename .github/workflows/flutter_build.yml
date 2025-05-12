@@ -7,43 +7,43 @@ on:
     branches: [ main ]
 
 jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Set up Flutter
-#        uses: subosito/flutter-action@v2
-#        with:
-#          flutter-version: '3.x'
-#
-#      - name: Install dependencies
-#        run: flutter pub get
-#
-#      - name: Build APK
-#        run: flutter build apk --debug
-#
-#      - name: Upload APK artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: app-debug-apk
-#          path: build/app/outputs/flutter-apk/app-debug.apk
-
-  maestro-test:
-#    needs: build
+  build:
     runs-on: ubuntu-latest
 
     steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Download APK artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: app-debug-apk
-#          path: ./apk
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+
+  maestro-test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: ./apk
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -58,11 +58,8 @@ jobs:
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
 
-      - name: Add Maestro to PATH
-        run: export PATH="$PATH:~/.maestro/bin"
-
       - name: Check Maestro install
-        run: maestro --version
+        run: ~/.maestro/bin/maestro --version
 
       - name: Enable KVM
         run: |
@@ -79,4 +76,4 @@ jobs:
           profile: pixel
           force-avd-creation: true
           emulator-options: -no-window -no-audio -no-boot-anim
-          script: adb install ./apk/app-debug.apk; maestro test maestro/counter_test.yaml
+          script: adb install ./apk/app-debug.apk; ~/.maestro/bin/maestro test maestro/counter_test.yaml
