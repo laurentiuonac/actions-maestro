@@ -51,35 +51,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android system image
-        run: |
-          sdkmanager "system-images;android-33;google_apis;arm64-v8a"
-
-      - name: Create Android emulator
-        run: |
-          echo "y" | avdmanager create avd -n test -k 'system-images;android-33;google_apis;arm64-v8a' -d pixel
-
-      - name: Start emulator
-        run: |
-          nohup emulator -avd test -no-window -no-audio -no-boot-anim &
-          adb wait-for-device
-
-      - name: Wait for Android to boot
-        run: |
-          # Wait until the system property 'sys.boot_completed' returns 1
-          bootanim=
-          until [ "$bootanim" == "1" ]; do
-            bootanim=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-            sleep 2
-          done
-          echo "Android booted."
+      - name: Start Android Emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: arm64-v8a
+          profile: pixel
+          force-avd-creation: true
+          emulator-options: -no-window -no-audio -no-boot-anim
 
       - name: Install APK on emulator
-        run: |
-          adb install ./apk/app-debug.apk
+        run: adb install ./apk/app-debug.apk
 
       - name: Install Maestro CLI
         run: |
@@ -88,8 +71,3 @@ jobs:
       - name: Run Maestro test
         run: |
           maestro test maestro/counter_test.yaml
-
-      - name: Shutdown emulator
-        if: always()
-        run: |
-          adb -s $(adb devices | grep emulator | cut -f1) emu kill || true
