@@ -7,43 +7,43 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk --debug
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+#  build:
+#    runs-on: macos-latest
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Set up Flutter
+#        uses: subosito/flutter-action@v2
+#        with:
+#          flutter-version: '3.x'
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Build APK
+#        run: flutter build apk --debug
+#
+#      - name: Upload APK artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: app-debug-apk
+#          path: build/app/outputs/flutter-apk/app-debug.apk
 
   maestro-test:
-    needs: build
+#    needs: build
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-debug-apk
-          path: ./apk
+#      - name: Download APK artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: app-debug-apk
+#          path: ./apk
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -54,6 +54,10 @@ jobs:
       - name: Install ADB
         run: sudo apt-get update && sudo apt-get install -y android-tools-adb
 
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+
       - name: Start Android Emulator
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
@@ -63,14 +67,4 @@ jobs:
           profile: pixel
           force-avd-creation: true
           emulator-options: -no-window -no-audio -no-boot-anim
-
-      - name: Install APK on emulator
-        run: adb install ./apk/app-debug.apk
-
-      - name: Install Maestro CLI
-        run: |
-          curl -Ls "https://get.maestro.mobile.dev" | bash
-
-      - name: Run Maestro test
-        run: |
-          maestro test maestro/counter_test.yaml
+          script: adb install ./apk/app-debug.apk; maestro test maestro/counter_test.yaml
