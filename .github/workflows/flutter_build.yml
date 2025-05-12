@@ -7,43 +7,43 @@ on:
     branches: [ main ]
 
 jobs:
-#  build:
-#    runs-on: macos-latest
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Set up Flutter
-#        uses: subosito/flutter-action@v2
-#        with:
-#          flutter-version: '3.x'
-#
-#      - name: Install dependencies
-#        run: flutter pub get
-#
-#      - name: Build APK
-#        run: flutter build apk --debug
-#
-#      - name: Upload APK artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: app-debug-apk
-#          path: build/app/outputs/flutter-apk/app-debug.apk
-
-  maestro-test:
-#    needs: build
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-#      - name: Download APK artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: app-debug-apk
-#          path: ./apk
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+
+  maestro-test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: ./apk
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -57,6 +57,7 @@ jobs:
       - name: Install Maestro CLI
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
+          export PATH="$PATH":"$HOME/.maestro/bin"
 
       - name: Enable KVM
         run: |
